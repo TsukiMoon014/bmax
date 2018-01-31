@@ -4,13 +4,9 @@ namespace bmax\src;
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-use bmax\src\controllers\CheckerController as toto;
+use bmax\src\controllers\CheckerController;
 
 require __DIR__.'/../../vendor/autoload.php';
-
-var_dump(new toto\CheckerController());
-
-/*
 
 $config = [
     'settings' => [
@@ -50,10 +46,10 @@ $container['logger'] = function($container) {
 // DB service
 $container['db'] = function ($container) {
     $db = $container['settings']['db'];
-    $pdo = new PDO('mysql:host=' . $db['host'] . ';dbname=' . $db['dbname'],
+    $pdo = new \PDO('mysql:host=' . $db['host'] . ';dbname=' . $db['dbname'],
         $db['user'], $db['pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
     return $pdo;
 };
 
@@ -63,8 +59,8 @@ $container['view'] = function($container){
 };
 
 // Service Checker
-/*$container['checkerController'] = function($container){
-    return new CheckerController($container->db);
+$container['checkerController'] = function($container){
+    return new CheckerController($container);
 };
 
 // Application middleware
@@ -129,10 +125,6 @@ $app->get('/hello/{name}', function (Request $request, Response $response, array
 
 $app->get('/check', CheckerController::class.':check')->setName('checker');
 
-$app->get('/',function (Request $request, Response $response, array $args) {
-    $a = new CheckerController();
-});
 
 // App running
 $app->run();
-*/
