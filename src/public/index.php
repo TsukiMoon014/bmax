@@ -7,60 +7,9 @@ use \Psr\Http\Message\ResponseInterface as Response;
 use bmax\src\controllers\CheckerController;
 
 require __DIR__.'/../../vendor/autoload.php';
+require __DIR__.'/../app/config.php';
+require __DIR__.'/../app/dependencies.php';
 
-$config = [
-    'settings' => [
-        'displayErrorDetails' => true,
-        'determineRouteBeforeAppMiddleware' => true,
-        'addContentLengthHeader' => false,
-
-        'db' => [
-            'host'   => 'localhost',
-            'user'   => 'root',
-            'pass'   => 'trois2CINQ',
-            'dbname' => 'bmax'
-        ],
-
-        'logger' => [
-            'name' => 'io_watcher',
-            'level' => \Monolog\Logger::DEBUG,
-            'path' => '../logs/app.log'
-        ],
-
-        'template' => [
-            'path' => '../templates/'
-        ]
-    ]
-];
-$app = new \Slim\App($config);
-$container = $app->getContainer();
-
-// Monolog service
-$container['logger'] = function($c) {
-    $logger = new \Monolog\Logger($c['settings']['logger']['name']);
-    $file_handler = new \Monolog\Handler\StreamHandler($c['settings']['logger']['path']);
-    $logger->pushHandler($file_handler);
-    return $logger;
-};
-
-// DB service
-$container['db'] = function ($c) {
-    $db = $c['settings']['db'];
-    $pdo = new \PDO('mysql:host=' . $db['host'] . ';dbname=' . $db['dbname'], $db['user'], $db['pass']);
-    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
-    return $pdo;
-};
-
-// Template service
-$container['view'] = function($c){
-    return new \Slim\Views\PhpRenderer($c['settings']['template']['path']);
-};
-
-// Service Checker
-$container['CheckerController'] = function($c){
-    return new CheckerController($this->view,$this->db);
-};
 
 // Application middleware
 // to log all i/o
