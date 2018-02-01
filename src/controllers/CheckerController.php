@@ -7,18 +7,22 @@ use \Psr\Http\Message\ResponseInterface as Response;
 
 class CheckerController
 {
-	protected $container;
+	protected $view;
+	protected $db;
 
-	function __construct($container)
+	function __construct($view, $db)
 	{
-		$this->container = $container;
+		var_dump($view);
+		var_dump($db);
+		$this->view = $view;
+		$this->db = $db;
 	}
 
-	public function check(Request $request, Response $response, array $args){
-		$req = $this->container->db->prepare("SELECT * from table_test");
+	public function checker(Request $request, Response $response, array $args){
+		$req = $this->db->prepare("SELECT * from table_test");
 		$req->execute();
 		$result = $req->fetchAll();
 
-		return $this->container->view->render($response, 'check.phtml', ['result' => $result]);
+		return $this->view->render($response, 'check.phtml', ['result' => $result]);
 	}
 }
