@@ -11,8 +11,30 @@ require __DIR__.'/../app/config.php';
 require __DIR__.'/../app/dependencies.php';
 
 
-// Application middleware
-// to log all i/o
+// Application Middleware
+// Permanently redirect paths with a trailing slash to their non-trailing counterpart
+$app->add(function (Request $request, Response $response, callable $next) {
+
+    $uri = $request->getUri();
+    $path = $uri->getPath();
+    if ($path != '/' && substr($path, -1) == '/') {
+        $uri = $uri->withPath(substr($path, 0, -1));
+
+        // Actual routing
+        if($request->getMethod() == 'GET') {
+            return $response->withRedirect((string)$uri, 301);
+        }
+        else {
+            return $next($request->withUri($uri), $response);
+        }
+    }
+
+    return $next($request, $response);
+});
+
+// Application Middleware
+// Central Entry Point
+// Log all i/o
 $app->add(function (Request $request, Response $response, callable $next) {
 
     // Logging the raw call
@@ -54,7 +76,7 @@ $app->add(function (Request $request, Response $response, callable $next) {
     // Adding the session in read_only
     //$request = $request->withAttribute('session', $_SESSION);
 
-    // Actual routing
+    // Passing it to entry point controls
     $response = $next($request, $response);
 
     // Logging exiting response
