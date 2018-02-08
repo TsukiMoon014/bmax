@@ -12,29 +12,9 @@ require __DIR__.'/../app/dependencies.php';
 
 
 // Application Middleware
-// Permanently redirect paths with a trailing slash to their non-trailing counterpart
-$app->add(function (Request $request, Response $response, callable $next) {
-
-    $uri = $request->getUri();
-    $path = $uri->getPath();
-    if ($path != '/' && substr($path, -1) == '/') {
-        $uri = $uri->withPath(substr($path, 0, -1));
-
-        // Actual routing
-        if($request->getMethod() == 'GET') {
-            return $response->withRedirect((string)$uri, 301);
-        }
-        else {
-            return $next($request->withUri($uri), $response);
-        }
-    }
-
-    return $next($request, $response);
-});
-
-// Application Middleware
 // Central Entry Point
 // Log all i/o
+// Act as an entry point and a output point
 $app->add(function (Request $request, Response $response, callable $next) {
 
     // Logging the raw call
@@ -76,13 +56,35 @@ $app->add(function (Request $request, Response $response, callable $next) {
     // Adding the session in read_only
     //$request = $request->withAttribute('session', $_SESSION);
 
-    // Passing it to entry point controls
+    // Passing it to routing for real execution
     $response = $next($request, $response);
 
     // Logging exiting response
     $this->logger->addInfo('Exiting code : '.$response->getStatusCode());
     $this->logger->addInfo('--------------END OF CALL--------------');
     return $response;
+});
+
+// Application Middleware
+// Permanently redirect paths with a trailing slash to their non-trailing counterpart
+// Only act as an entry point
+$app->add(function (Request $request, Response $response, callable $next) {
+    $uri = $request->getUri();
+    $path = $uri->getPath();
+    if ($path != '/' && substr($path, -1) == '/') {
+        $uri = $uri->withPath(substr($path, 0, -1));
+
+        // Actual routing
+        if($request->getMethod() == 'GET') {
+            return $response->withRedirect((string)$uri, 301);
+        }
+        else {
+            return $next($request->withUri($uri), $response);
+        }
+    }
+
+    // Passing it to logging middleware
+    return $next($request, $response);
 });
 
 // Actual routing
