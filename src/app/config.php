@@ -9,7 +9,7 @@ $config = [
         'db' => [
             'host'   => 'localhost',
             'user'   => 'root',
-            'pass'   => 'trois2CINQ',
+            'pass'   => '',
             'dbname' => 'bmax'
         ],
 

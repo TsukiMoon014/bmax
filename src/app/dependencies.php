@@ -27,5 +27,5 @@ $container['view'] = function($c){
 
 // Service Checker
 $container['CheckerController'] = function($c){
-    return new CheckerController($this->view,$this->db);
+    return new CheckerController($c);
 };
