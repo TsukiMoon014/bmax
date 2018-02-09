@@ -24,5 +24,3 @@ $config = [
         ]
     ]
 ];
-
-$app = new \Slim\App($config);

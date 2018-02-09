@@ -1,7 +1,5 @@
 <?php
 
-$container = $app->getContainer();
-
 // Monolog service
 $container['logger'] = function($c) {
     $logger = new \Monolog\Logger($c['settings']['logger']['name']);
