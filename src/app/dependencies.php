@@ -1,6 +1,5 @@
 <?php
 
-
 $container = $app->getContainer();
 
 // Monolog service

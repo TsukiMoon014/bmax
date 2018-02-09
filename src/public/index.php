@@ -7,89 +7,19 @@ use \Psr\Http\Message\ResponseInterface as Response;
 use bmax\src\controllers\CheckerController;
 
 require __DIR__.'/../../vendor/autoload.php';
+
+// Global settings
 require __DIR__.'/../app/config.php';
+
+// Container registrations
 require __DIR__.'/../app/dependencies.php';
 
+// I/O logging with application middlewares
+require __DIR__.'/../middlewares/app/exitLog.php';
+require __DIR__.'/../middlewares/app/entryLog.php';
 
-// Application Middleware
-// Central Log Exit Point
-$app->add(function (Request $request, Response $response, callable $next){
-    // Passing it to routing
-    // as this middleware is handling things afterward it
-    $response = $next($request, $response);
-
-    // Logging exiting response
-    $this->logger->addInfo('Exiting code : '.$response->getStatusCode());
-    $this->logger->addInfo('--------------END OF CALL--------------');
-    return $response;
-});
-
-// Application Middleware
-// Central Log Entry Point
-$app->add(function (Request $request, Response $response, callable $next) {
-    // Logging the raw call
-    $uri = $request->getUri();
-    $this->logger->addInfo('--------------NEW CALL--------------');
-    $this->logger->addInfo('Scheme : '.$uri-> getScheme());
-    $this->logger->addInfo('User : '.$uri-> getUserInfo());
-    $this->logger->addInfo('Host : '.$uri-> getHost());
-    $this->logger->addInfo('Port : '.$uri-> getPort());
-    $this->logger->addInfo('BasePath : '.$uri-> getBasePath());
-    $this->logger->addInfo('Path : '.$uri-> getPath());
-    $this->logger->addInfo('Query : '.$uri-> getQuery());
-    $this->logger->addInfo('Fragment : '.$uri-> getFragment());
-
-    // Logging headers
-    $headers = $request->getHeaders();
-    foreach ($headers as $name => $values) {
-        $this->logger->addInfo($name . ' : ' . implode(", ", $values));
-    }
-
-    // Logging the routing
-    // Possible thanks to 'determineRouteBeforeAppMiddleware' => true
-    $route = $request->getAttribute('route');
-
-    // Return NotFound for non existent route
-    if (empty($route)) {
-        $this->logger->addInfo('--------------NO MATCH--------------');
-        throw new NotFoundException($request, $response);
-    }
-
-    $this->logger->addInfo('--------------MATCH FOUND--------------');
-    $this->logger->addInfo('Pattern : '.$route->getPattern());
-    $this->logger->addInfo('Name : '.$route->getName());
-    $this->logger->addInfo('Groups : ('.implode(") (",$route->getGroups()).')');
-    $this->logger->addInfo('Methods : ('.implode(") (",$route->getMethods()).')');
-    $this->logger->addInfo('Arguments : ('.implode(") (",$route->getArguments()).')');
-
-    // Adding the session in read_only
-    //$request = $request->withAttribute('session', $_SESSION);
-
-    // Passing it to exit middleware
-    return $next($request, $response);
-});
-
-// Application Middleware
-// Permanently redirect paths with a trailing slash to their non-trailing counterpart
-// Only act as an entry point
-$app->add(function (Request $request, Response $response, callable $next) {
-    $uri = $request->getUri();
-    $path = $uri->getPath();
-    if ($path != '/' && substr($path, -1) == '/') {
-        $uri = $uri->withPath(substr($path, 0, -1));
-
-        // Actual routing
-        if($request->getMethod() == 'GET') {
-            return $response->withRedirect((string)$uri, 301);
-        }
-        else {
-            return $next($request->withUri($uri), $response);
-        }
-    }
-
-    // Passing it to logging middleware
-    return $next($request, $response);
-});
+// Entry point to trail slashes
+require __DIR__.'/../middlewares/app/trailingSlash.php';
 
 // Actual routing
 $app->get('/hello/{name}', function (Request $request, Response $response, array $args) {
