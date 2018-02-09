@@ -12,11 +12,21 @@ require __DIR__.'/../app/dependencies.php';
 
 
 // Application Middleware
-// Central Entry Point
-// Log all i/o
-// Act as an entry point and a output point
-$app->add(function (Request $request, Response $response, callable $next) {
+// Central Log Exit Point
+$app->add(function (Request $request, Response $response, callable $next){
+    // Passing it to routing
+    // as this middleware is handling things afterward it
+    $response = $next($request, $response);
 
+    // Logging exiting response
+    $this->logger->addInfo('Exiting code : '.$response->getStatusCode());
+    $this->logger->addInfo('--------------END OF CALL--------------');
+    return $response;
+});
+
+// Application Middleware
+// Central Log Entry Point
+$app->add(function (Request $request, Response $response, callable $next) {
     // Logging the raw call
     $uri = $request->getUri();
     $this->logger->addInfo('--------------NEW CALL--------------');
@@ -34,7 +44,6 @@ $app->add(function (Request $request, Response $response, callable $next) {
     foreach ($headers as $name => $values) {
         $this->logger->addInfo($name . ' : ' . implode(", ", $values));
     }
-
 
     // Logging the routing
     // Possible thanks to 'determineRouteBeforeAppMiddleware' => true
@@ -56,13 +65,8 @@ $app->add(function (Request $request, Response $response, callable $next) {
     // Adding the session in read_only
     //$request = $request->withAttribute('session', $_SESSION);
 
-    // Passing it to routing for real execution
-    $response = $next($request, $response);
-
-    // Logging exiting response
-    $this->logger->addInfo('Exiting code : '.$response->getStatusCode());
-    $this->logger->addInfo('--------------END OF CALL--------------');
-    return $response;
+    // Passing it to exit middleware
+    return $next($request, $response);
 });
 
 // Application Middleware
