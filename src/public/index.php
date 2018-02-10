@@ -27,14 +27,14 @@ $app->add(new EntryLog($container->get('logger')));
 $app->add(new TrailingSlash());
 
 // Actual routing
-$app->get('/hello/{name}', function (Request $request, Response $response, array $args) {
-    $name = $args['name'];
-    $response = $this->view->render($response, 'test.phtml', ['name' => $name, 'router' => $this->router]);
+$app->get('/update/{scale}', function (Request $request, Response $response, array $args) {
+    $scale = $args['scale'];
+    $response = $this->view->render($response, 'test.phtml', ['scale' => $scale, 'router' => $this->router]);
 
     return $response;
-})->setName('hello');
+})->setName('update');
 
-$app->get('/checker', CheckerController::class.':checker')
+$app->get('/checker[/{force_update}]', CheckerController::class.':checker')
 ->setName('checker');
 
 // App running
