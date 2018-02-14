@@ -29,16 +29,16 @@ class CheckerController
 		$days_without_update = $today->diff($last_update);
 
 		// experimental
-		$eve_current_version = 1243162;
+		$eve_current_version = 1247568;
 
 		$new_version_available = false;
 		$new_prices_available = false;
 
 		// A new version is available, we need to update the item base
-		if((int)$result['eve_version_number'] !== $eve_current_version)
+		if((int)$result['eve_version_number'] < $eve_current_version)
 		{
 			$update_link = $this->container->get('router')->pathFor('update', [
-			    'scale' => 'item'
+			    'scale' => 'version'
 		    ]);
 		    $new_version_available = true;
 		}
@@ -46,7 +46,7 @@ class CheckerController
 		elseif($days_without_update->format("%R") === "-")
 		{
 			$update_link = $this->container->get('router')->pathFor('update', [
-			    'scale' => 'price'
+			    'scale' => 'market'
 		    ]);
 		    $new_prices_available = true;
 		}
@@ -54,7 +54,7 @@ class CheckerController
 		else
 		{
 			$update_link = $this->container->get('router')->pathFor('update', [
-			    'scale' => 'price'
+			    'scale' => 'market'
 		    ]);
 		}
 
@@ -64,7 +64,7 @@ class CheckerController
 			'days_without_update' 	=> $days_without_update,
 			'new_version_available' => $new_version_available,
 			'new_prices_available'	=> $new_prices_available,
-			'router' 				=> $this->container->get('router')
+			'update_link'			=> $update_link
 		]);
 	}
 }

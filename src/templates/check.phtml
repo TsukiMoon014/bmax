@@ -5,30 +5,19 @@ if($new_version_available){
 	?>
 	<h3> A new Eve version is available !</h3>
 	<p>An update is strongly recommended !</p>
-	<a href="<?=$router->pathFor('update', [
-			    'scale' => 'item'
-		    ]);?>">
-	    <button>UPDATE</button>
-	</a>
 	<?php
 }elseif($new_prices_available){
 	?>
 	<h3>Days without update : <?php echo $days_without_update->format('%a'); ?> (last time was on <?php echo $last_update->format("d-m-Y"); ?>)</h3>
 	<p>Would you like to update ?</p>
-	<a href="<?=$router->pathFor('update', [
-			    'scale' => 'price'
-		    ]);?>">
-	    <button>UPDATE</button>
-	</a>
 	<?php
 }else{
 	?>
 	<h3>Last update is less than a day ago</h3>
 	<p>Would you like to update anyway ?</p>
-	<a href="<?=$router->pathFor('update', [
-			    'scale' => 'price'
-		    ]);?>">
-	    <button>UPDATE</button>
-	</a>
 	<?php
 }
+?>
+<a href="<?php echo $update_link; ?>">
+    <button>UPDATE</button>
+</a>

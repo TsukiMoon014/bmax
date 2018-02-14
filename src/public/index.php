@@ -8,6 +8,7 @@ use bmax\src\middlewares\app\ExitLog;
 use bmax\src\middlewares\app\EntryLog;
 use bmax\src\middlewares\app\TrailingSlash;
 use bmax\src\controllers\CheckerController;
+use bmax\src\controllers\UpdateController;
 
 require __DIR__.'/../../vendor/autoload.php';
 
@@ -27,12 +28,8 @@ $app->add(new EntryLog($container->get('logger')));
 $app->add(new TrailingSlash());
 
 // Actual routing
-$app->get('/update/{scale}', function (Request $request, Response $response, array $args) {
-    $scale = $args['scale'];
-    $response = $this->view->render($response, 'test.phtml', ['scale' => $scale, 'router' => $this->router]);
-
-    return $response;
-})->setName('update');
+$app->get('/update/{scale}', UpdateController::class.':updateSelector')
+->setName('update');
 
 $app->get('/checker[/{force_update}]', CheckerController::class.':checker')
 ->setName('checker');
