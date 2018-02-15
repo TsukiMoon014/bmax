@@ -26,3 +26,7 @@ $container['view'] = function($c){
 $container['CheckerController'] = function($c){
     return new CheckerController($c);
 };
+
+$container['CurlHelper'] = function($c){
+    return new GuzzleHttp\Client(['base_uri' => "https://esi.tech.ccp.is/latest/"]);
+};

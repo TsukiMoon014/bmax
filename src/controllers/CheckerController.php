@@ -30,7 +30,24 @@ class CheckerController
 
 		// experimental
 		$eve_current_version = 1247568;
+		$a = $this->container->get('CurlHelper');
+var_dump($a->base_uri);
+$client = $this->container->get('CurlHelper')->get('https://esi.tech.ccp.is/latest', [
+    'query' => [
+    	'datasource' => 'tranquility'
+    ],
+    'headers' => [
+        'User-Agent' => 'bmax/1.0',
+        'Accept'     => 'application/json'
+    ]
+]);
 
+		/*$apiStatusResponse = $this->container->get('CurlHelper')->request('GET', 'status',[
+			'query' => ['data_source' => 'tranquility'],
+		]);
+
+		$body = $apiStatusResponse->getBody();
+*/
 		$new_version_available = false;
 		$new_prices_available = false;
 
@@ -64,7 +81,8 @@ class CheckerController
 			'days_without_update' 	=> $days_without_update,
 			'new_version_available' => $new_version_available,
 			'new_prices_available'	=> $new_prices_available,
-			'update_link'			=> $update_link
+			'update_link'			=> $update_link,
+			'stat'					=> $apiStatusResponse
 		]);
 	}
 }

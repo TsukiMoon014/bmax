@@ -9,6 +9,8 @@ use bmax\src\middlewares\app\EntryLog;
 use bmax\src\middlewares\app\TrailingSlash;
 use bmax\src\controllers\CheckerController;
 use bmax\src\controllers\UpdateController;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 require __DIR__.'/../../vendor/autoload.php';
 
