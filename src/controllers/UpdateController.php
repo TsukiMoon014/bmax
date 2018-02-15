@@ -36,17 +36,17 @@ class UpdateController
 
 		return $this->container->view->render($response, 'update.phtml', [
 			'scale' 	=> $scale,
-			'success' 	=> $success,
-			'router' 	=> $this->router]);
+			'success' 	=> $success
+		]);
 	}
 
 	function updateVersion()
 	{
-		echo "MAJ de la version";
+		return "MAJ de la version";
 	}
 
 	function updateMarketData()
 	{
-		echo "MAJ du market";
+		return "MAJ du market";
 	}
 }
