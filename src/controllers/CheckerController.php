@@ -35,7 +35,7 @@ class CheckerController
 
 
 		// Getting current eve version from ccp
-		$res = $this->container->get('CurlHelper')->get('status',['query' => ['datasource' => 'tranquility']]);
+		$res = $this->container->CurlHelper->get('status',['query' => ['datasource' => 'tranquility']]);
 		if($res->getStatusCode() === 200){
 			$res_body = json_decode($res->getBody(),true);
 		}else{
@@ -48,7 +48,7 @@ class CheckerController
 		// A new version is available, we need to update the item base
 		if($result['eve_version_number'] < $res_body['server_version'])
 		{
-			$update_link = $this->container->get('router')->pathFor('update', [
+			$update_link = $this->container->router->pathFor('update', [
 			    'scale' => 'version'
 		    ]);
 		    $new_version_available = true;
@@ -56,7 +56,7 @@ class CheckerController
 		// It's been a day without action, we need to update prices
 		elseif($days_without_update->format("%R") === "-")
 		{
-			$update_link = $this->container->get('router')->pathFor('update', [
+			$update_link = $this->container->router->pathFor('update', [
 			    'scale' => 'market'
 		    ]);
 		    $new_prices_available = true;
@@ -64,7 +64,7 @@ class CheckerController
 		// We can update anyway if we want
 		else
 		{
-			$update_link = $this->container->get('router')->pathFor('update', [
+			$update_link = $this->container->router->pathFor('update', [
 			    'scale' => 'market'
 		    ]);
 		}
@@ -75,8 +75,7 @@ class CheckerController
 			'days_without_update' 	=> $days_without_update,
 			'new_version_available' => $new_version_available,
 			'new_prices_available'	=> $new_prices_available,
-			'update_link'			=> $update_link,
-			'stat'					=> $apiStatusResponse
+			'update_link'			=> $update_link
 		]);
 	}
 }
