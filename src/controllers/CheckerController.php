@@ -5,6 +5,9 @@ namespace bmax\src\controllers;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+
 class CheckerController
 {
 	protected $container;
@@ -16,6 +19,8 @@ class CheckerController
 
 	public function checker(Request $request, Response $response, array $args){
 		$force_update = isset($args['force_update']);
+
+		// Checking registered eve version in database
 		$req = $this->container->db->prepare("
 			SELECT *
 			FROM control
@@ -28,31 +33,20 @@ class CheckerController
 		$last_update = new \DateTime($result['last_update']);
 		$days_without_update = $today->diff($last_update);
 
-		// experimental
-		$eve_current_version = 1247568;
-		$a = $this->container->get('CurlHelper');
-var_dump($a->base_uri);
-$client = $this->container->get('CurlHelper')->get('https://esi.tech.ccp.is/latest', [
-    'query' => [
-    	'datasource' => 'tranquility'
-    ],
-    'headers' => [
-        'User-Agent' => 'bmax/1.0',
-        'Accept'     => 'application/json'
-    ]
-]);
 
-		/*$apiStatusResponse = $this->container->get('CurlHelper')->request('GET', 'status',[
-			'query' => ['data_source' => 'tranquility'],
-		]);
+		// Getting current eve version from ccp
+		$res = $this->container->get('CurlHelper')->get('status',['query' => ['datasource' => 'tranquility']]);
+		if($res->getStatusCode() === 200){
+			$res_body = json_decode($res->getBody(),true);
+		}else{
+			var_dump("ERROR");
+		}
 
-		$body = $apiStatusResponse->getBody();
-*/
 		$new_version_available = false;
 		$new_prices_available = false;
 
 		// A new version is available, we need to update the item base
-		if((int)$result['eve_version_number'] < $eve_current_version)
+		if($result['eve_version_number'] < $res_body['server_version'])
 		{
 			$update_link = $this->container->get('router')->pathFor('update', [
 			    'scale' => 'version'
