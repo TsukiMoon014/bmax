@@ -49,7 +49,7 @@ class UpdateController
 		$page = 0;
 		do{
 			// First we get item id 1000 per 1000
-			$resItem = $this->container->CurlHelper->get('universe/types',[
+			$resItem = $this->container->CurlHelper->get('universe/types/',[
 				'query' => [
 					'datasource' => 'tranquility',
 					'page'		 => $page
@@ -57,20 +57,16 @@ class UpdateController
 			]);
 			if($resItem->getStatusCode() === 200){
 				$itemList = array_values(json_decode($resItem->getBody(),true));
+
 				// Then we get info on them
-				var_dump($itemList);
-
-
-				$resInfo = $this->container->CurlHelper->request('POST','universe/names',[
-					'headers' => [
-						'Content-Type' => 'application/x-www-form-urlencoded'
+				$resInfo = $this->container->CurlHelper->post('universe/names/',[
+					"headers" => [
+						"Content-Type" => "application/json"
 					],
-					'form_params' => [
-						'body' => $itemList
-					]
+					\GuzzleHttp\RequestOptions::JSON => $itemList
 				]);
 
-				var_dump($resInfo->getBody());
+				var_dump(json_decode($resInfo->getBody()));
 				/*
 				foreach ($itemList as $item) {
 					$req = $this->container->db->prepare("
