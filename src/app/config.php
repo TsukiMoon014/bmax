@@ -9,7 +9,7 @@ $config = [
         'db' => [
             'host'   => 'localhost',
             'user'   => 'root',
-            'pass'   => 'trois2CINQ',
+            'pass'   => '',
             'dbname' => 'bmax'
         ],
 
@@ -21,6 +21,10 @@ $config = [
 
         'template' => [
             'path' => '../templates/'
+        ],
+
+        'utils' => [
+            'the_forge_region_id' => 10000002
         ]
     ]
 ];

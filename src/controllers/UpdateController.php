@@ -20,6 +20,8 @@ class UpdateController
 		switch ($scale) {
 			// Update all items because Eve has a new version
 			case 'version':
+				// unfortunatly it can be a huge update
+				set_time_limit(60*60);
 				$success = $this->updateVersion();
 				break;
 
@@ -42,50 +44,79 @@ class UpdateController
 
 	function updateVersion()
 	{
-		// Update item database
-
-		// First call also gets the number of pages
-		// in header x-page
 		$page = 0;
+		$maxpage = 0;
+		$nb_update = 0;
+
 		do{
 			// First we get item id 1000 per 1000
-			$resItem = $this->container->CurlHelper->get('universe/types/',[
+			$resItem = $this->container->CurlHelper->get('markets/'.$this->container->get('settings')['utils']['the_forge_region_id'].'/types/',[
 				'query' => [
 					'datasource' => 'tranquility',
 					'page'		 => $page
 				]
 			]);
+
 			if($resItem->getStatusCode() === 200){
-				$itemList = array_values(json_decode($resItem->getBody(),true));
+				// First call also gets the number of pages
+				// in header x-page
+				if($page === 0){
+					$maxpage = (int)$resItem->getHeader('x-pages')[0];
+				}
+
+				// Get item list of item on the market
+				$itemIdList = array_values(array_unique(json_decode($resItem->getBody(),true)));
 
 				// Then we get info on them
 				$resInfo = $this->container->CurlHelper->post('universe/names/',[
 					"headers" => [
 						"Content-Type" => "application/json"
 					],
-					\GuzzleHttp\RequestOptions::JSON => $itemList
+					\GuzzleHttp\RequestOptions::JSON => $itemIdList
 				]);
 
-				var_dump(json_decode($resInfo->getBody()));
-				/*
-				foreach ($itemList as $item) {
+				$itemListDetailed = json_decode($resInfo->getBody(),true);
+
+				// Does it exists in our database ?
+				foreach ($itemListDetailed as $item) {
 					$req = $this->container->db->prepare("
 						SELECT *
 						FROM items
 						WHERE item_id = :item_id");
-					$req->bindValue(":item_id",$item['']);
-				}*/
+					$req->bindValue(":item_id",$item['id']);
 
+					$req->execute();
+					$dbItem = $req->fetch();
+
+					// It doesn't, let's create or update it
+					if(empty($dbItem) || $dbItem['name'] != $item['name']  || $dbItem['category'] != $item['category']){
+						$req = $this->container->db->prepare("
+							INSERT INTO items
+							(item_id, name, category)
+							VALUES(:item_id, :name, :category)
+					    ON DUPLICATE KEY
+					    UPDATE
+					    	name = :name2,
+					    	category= :category2");
+
+						$req->bindParam(':item_id', $item['id']);
+						$req->bindParam(':name', $item['name']);
+						$req->bindParam(':name2', $item['name']);
+						$req->bindParam(':category', $item['category']);
+						$req->bindParam(':category2', $item['category']);
+
+						if($req->execute()){
+							$nb_update++;
+						}
+					}
+				}
 			}else{
 				var_dump("ERROR");
 			}
 			$page++;
+		}while ($page < $maxpage);
 
-
-		}while ($page < 0);//(int)$resItem->getHeader('x-pages')[0]);
-
-		// Update version control history
-		return "MAJ de la version";
+		return $nb_update;
 	}
 
 	function updateMarketData()
