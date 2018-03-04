@@ -133,6 +133,27 @@ class UpdateController
 
 	function updateMarketData()
 	{
-		return "MAJ du market";
+		// First call also gets the number of pages
+	    // in header x-page
+	    $page = 0;
+	    $maxpage = 0;
+	    $nb_update = 0;
+		do{
+			// First call also gets the number of pages
+			// in header x-page
+			if($page === 0){
+				$maxpage = (int)$resItem->getHeader('x-pages')[0];
+			}
+
+			$resItem = $this->container->CurlHelper->get('markets/'.$this->container->get('settings')['utils']['the_forge_region_id'].'/orders/',[
+		        'query' => [
+		          'datasource' => 'tranquility',
+		          'order_type' => 'sell',
+		          'page'     => $page
+		        ]
+		      ]);
+
+			//@TODO : only keep jita 4_4 sell orders
+		}while ($page <= $maxpage);
 	}
 }

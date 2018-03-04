@@ -24,7 +24,8 @@ $config = [
         ],
 
         'utils' => [
-            'the_forge_region_id' => 10000002
+            'the_forge_region_id' => 10000002,
+            'jita_4_4_location_id' => 60003760
         ]
     ]
 ];
