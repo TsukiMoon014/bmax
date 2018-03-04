@@ -46,11 +46,11 @@ class UpdateController
 	{
 		$page = 0;
 		$maxpage = 0;
-		$nb_update = 0;
+		$itemIdList = array();
 
 		do{
 			// First we get item id 1000 per 1000
-			$resItem = $this->container->CurlHelper->get('markets/'.$this->container->get('settings')['utils']['the_forge_region_id'].'/types/',[
+			$resItem = $this->container->CurlHelper->get('universe/types/',[
 				'query' => [
 					'datasource' => 'tranquility',
 					'page'		 => $page
@@ -65,57 +65,69 @@ class UpdateController
 				}
 
 				// Get item list of item on the market
-				$itemIdList = array_values(array_unique(json_decode($resItem->getBody(),true)));
+				$itemIdList = array_unique(array_merge($itemIdList,array_values(array_unique(json_decode($resItem->getBody(),true)))));
 
-				// Then we get info on them
-				$resInfo = $this->container->CurlHelper->post('universe/names/',[
-					"headers" => [
-						"Content-Type" => "application/json"
-					],
-					\GuzzleHttp\RequestOptions::JSON => $itemIdList
-				]);
-
-				$itemListDetailed = json_decode($resInfo->getBody(),true);
-
-				// Does it exists in our database ?
-				foreach ($itemListDetailed as $item) {
-					$req = $this->container->db->prepare("
-						SELECT *
-						FROM items
-						WHERE item_id = :item_id");
-					$req->bindValue(":item_id",$item['id']);
-
-					$req->execute();
-					$dbItem = $req->fetch();
-
-					// It doesn't, let's create or update it
-					if(empty($dbItem) || $dbItem['name'] != $item['name']  || $dbItem['category'] != $item['category']){
-						$req = $this->container->db->prepare("
-							INSERT INTO items
-							(item_id, name, category)
-							VALUES(:item_id, :name, :category)
-					    ON DUPLICATE KEY
-					    UPDATE
-					    	name = :name2,
-					    	category= :category2");
-
-						$req->bindParam(':item_id', $item['id']);
-						$req->bindParam(':name', $item['name']);
-						$req->bindParam(':name2', $item['name']);
-						$req->bindParam(':category', $item['category']);
-						$req->bindParam(':category2', $item['category']);
-
-						if($req->execute()){
-							$nb_update++;
-						}
-					}
-				}
 			}else{
 				var_dump("ERROR");
 			}
 			$page++;
-		}while ($page < $maxpage);
+		}while ($page <= $maxpage);
 
+		// Then we get info on them, 1000 per 1000
+		$subSet = array();
+		$start = 0;
+		$step = 1000;
+		$nb_update = 0;
+		$nb_unchanged = 0;
+		do{
+			$subSet = array_slice($itemIdList,$start,$step);
+			$start += $step;
+
+			$resInfo = $this->container->CurlHelper->post('universe/names/',[
+				"headers" => [
+					"Content-Type" => "application/json"
+				],
+				\GuzzleHttp\RequestOptions::JSON => array_values($subSet)
+			]);
+
+			$itemListDetailed = json_decode($resInfo->getBody(),true);
+
+			// Does it exists in our database ?
+			foreach ($itemListDetailed as $item) {
+				$req = $this->container->db->prepare("
+					SELECT *
+					FROM items
+					WHERE item_id = :item_id");
+				$req->bindValue(":item_id",$item['id']);
+
+				$req->execute();
+				$dbItem = $req->fetch();
+
+				// It doesn't or it's not accurate, let's create or update it
+				if(empty($dbItem) || $dbItem['name'] != $item['name'] || $dbItem['category'] != $item['category']){
+					$req = $this->container->db->prepare("
+						INSERT INTO items
+						(item_id, name, category)
+						VALUES(:item_id, :name, :category)
+				    ON DUPLICATE KEY
+				    UPDATE
+				    	name = :name2,
+				    	category = :category2");
+
+					$req->bindParam(':item_id', $item['id']);
+					$req->bindParam(':name', $item['name']);
+					$req->bindParam(':name2', $item['name']);
+					$req->bindParam(':category', $item['category']);
+					$req->bindParam(':category2', $item['category']);
+
+					if($req->execute()){
+						$nb_update++;
+					}
+				}else{
+					$nb_unchanged++;
+				}
+			}
+		}while (count($subSet) == $step);
 		return $nb_update;
 	}
 
